@@ -15,10 +15,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return MaterialApp(
       home: AnimatedSplashScreen(
         splash: Image.asset('assets/icons/tigerLogo.png'),
-        nextScreen: HomePage(),
+        nextScreen: const HomePage(),
         duration: 3000,
         splashIconSize: 300,
-        backgroundColor: Color.fromARGB(255, 51, 47, 47),
+        backgroundColor: const Color.fromARGB(255, 51, 47, 47),
       ),
     );
   }

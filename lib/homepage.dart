@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:convert';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
@@ -211,8 +212,8 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(
           leading: Image.asset('assets/icons/tigerLogo.png'),
-          backgroundColor: Color.fromARGB(255, 46, 46, 46),
-          title: Text("UMSV - Command Center"),
+          backgroundColor: const Color.fromARGB(255, 46, 46, 46),
+          title: const Text("UMSV - Command Center"),
           centerTitle: true,
         ),
         body: Column(
@@ -225,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Switch(
-                      activeTrackColor: Color.fromARGB(255, 189, 46, 36),
+                      activeTrackColor: const Color.fromARGB(255, 189, 46, 36),
                       inactiveTrackColor: Colors.black,
                       inactiveThumbColor: Colors.red,
                       activeColor: Colors.red,
@@ -261,7 +262,7 @@ class _HomePageState extends State<HomePage> {
                       items: _getDeviceItems(),
                       onChanged: (value) => setState(() => _device = value),
                       value: _devicesList.isNotEmpty ? _device : null,
-                      dropdownColor: Color.fromARGB(255, 202, 19, 19),
+                      dropdownColor: const Color.fromARGB(255, 202, 19, 19),
                     ),
                     ElevatedButton(
                       // color: Colors.redAccent,
@@ -278,7 +279,67 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Expanded(flex: 2, child: const CameraComponent()),
+            Expanded(
+              flex: 1,
+              child: Container(
+                padding: const EdgeInsets.all(6.0),
+                color: const Color(0XFF2e2e2e),
+                width: double.maxFinite,
+                child: StreamBuilder(
+                  stream: FirebaseDatabase.instance.ref().onValue,
+                  builder: ((context, snapshot) {
+                    print(snapshot.connectionState);
+
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                        return const Center(child: CircularProgressIndicator());
+
+                      case ConnectionState.none:
+                        return const Center(
+                            child: Text(
+                          'Some error occured',
+                          style: TextStyle(color: Colors.white),
+                        ));
+
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                        if (snapshot.data != null) {
+                          // Data: {Mine Detection: {lng: 0, mineFound: false, lat: 0}}
+                          Map<String, dynamic> mineData =
+                              Map.castFrom<Object?, Object?, String, dynamic>(
+                                  (snapshot.data as DatabaseEvent)
+                                      .snapshot
+                                      .value as Map);
+
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                mineData['Mine Detection']['mineFound']
+                                    ? 'Mine found'
+                                    : 'Mine not found',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              if (mineData['Mine Detection']['mineFound'])
+                                Text(
+                                  "Lat: ${mineData['Mine Detection']['lat']}, Lng: ${mineData['Mine Detection']['lng']}",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                            ],
+                          );
+                        } else {
+                          return const Center(
+                              child: Text(
+                            'No data recieved',
+                            style: TextStyle(color: Colors.white),
+                          ));
+                        }
+                    }
+                  }),
+                ),
+              ),
+            ),
             Expanded(
               flex: 6,
               child: Container(
@@ -292,7 +353,7 @@ class _HomePageState extends State<HomePage> {
                           size: 20, color: Colors.white54),
                       onPressed: () => _sendMessageToBluetooth("1"),
                     ),
-                    Padding(padding: EdgeInsets.all(30)),
+                    const Padding(padding: EdgeInsets.all(30)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -313,7 +374,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ],
                     ),
-                    Padding(padding: EdgeInsets.all(30)),
+                    const Padding(padding: EdgeInsets.all(30)),
                     ControllerButton(
                       child: const Icon(Icons.keyboard_arrow_down,
                           size: 20, color: Colors.white54),
